@@ -20,7 +20,7 @@ export default function Home() {
     setError(null);
     setTravelers(formData.travelers);
     try {
-      const response = await axios.post('http://localhost:5000/api/routes/calculate', formData);
+      const response = await axios.post('https://smart-travel-planner-d7im.onrender.com/api/routes/calculate', formData);
       setResult(response.data);
     } catch (err) {
       console.error(err);
@@ -43,7 +43,7 @@ export default function Home() {
       {/* Hero Section */}
       <div className="relative pt-24 pb-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8 border border-slate-200 dark:border-slate-700"
@@ -51,18 +51,18 @@ export default function Home() {
             <Sparkles size={16} className="text-yellow-500" />
             <span className="text-sm font-semibold">Introducing Lumina OS 2.0</span>
           </motion.div>
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6 leading-tight"
           >
-            Travel smarter with <br className="hidden md:block"/>
+            Travel smarter with <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 animate-gradient-x">
               AI-Powered Routing
             </span>
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -78,7 +78,7 @@ export default function Home() {
 
         <AnimatePresence>
           {error && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
@@ -91,7 +91,7 @@ export default function Home() {
 
         <AnimatePresence>
           {result && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -40 }}
@@ -131,10 +131,10 @@ export default function Home() {
 
       <AnimatePresence>
         {bookingRoute && (
-          <BookingWizard 
-            route={bookingRoute} 
-            travelers={travelers} 
-            onClose={() => setBookingRoute(null)} 
+          <BookingWizard
+            route={bookingRoute}
+            travelers={travelers}
+            onClose={() => setBookingRoute(null)}
           />
         )}
       </AnimatePresence>
