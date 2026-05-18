@@ -1,5 +1,16 @@
-import { CheckCircle2, IndianRupee, Clock, Zap, ArrowRight, ShieldCheck, Tag } from 'lucide-react';
+import { CheckCircle2, IndianRupee, Clock, Zap, ArrowRight, ShieldCheck, Tag, Bus, Train, Plane, Car, Bike } from 'lucide-react';
 import { motion } from 'framer-motion';
+
+function getModeIcon(mode) {
+  switch (mode?.toLowerCase()) {
+    case 'bus': return <Bus size={16} />;
+    case 'train': return <Train size={16} />;
+    case 'flight': return <Plane size={16} />;
+    case 'car': return <Car size={16} />;
+    case 'bike': return <Bike size={16} />;
+    default: return <Zap size={16} />;
+  }
+}
 
 export default function ResultCard({ route, index, onBook }) {
   const isBest = route.isBest;
@@ -18,7 +29,7 @@ export default function ResultCard({ route, index, onBook }) {
     >
       {isBest && (
         <div className="absolute -top-3.5 right-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-black px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 z-10 uppercase tracking-widest">
-          <SparklesIcon size={12} /> Top AI Pick
+          <SparklesIcon size={12} /> AI Recommended
         </div>
       )}
       
@@ -26,8 +37,8 @@ export default function ResultCard({ route, index, onBook }) {
         <div className="flex justify-between items-start mb-6">
           <div className="flex-1">
             <div className="flex items-center gap-3">
-              <span className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-extrabold uppercase tracking-widest text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                {route.mode}
+              <span className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-extrabold uppercase tracking-widest text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5">
+                {getModeIcon(route.mode)} {route.mode}
               </span>
               <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">{route.subMode}</h3>
             </div>

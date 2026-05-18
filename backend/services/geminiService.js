@@ -20,21 +20,33 @@ async function generateTravelRecommendation(routes, priority, travelDetails) {
     - Date: ${travelDetails.travelDate}
     
     Here are the top routes calculated: 
-    ${JSON.stringify(routes.slice(0, 3), null, 2)}
+    ${JSON.stringify(routes.slice(0, 5), null, 2)}
     
-    Please provide a professional, insightful 3-sentence recommendation.
-    Address:
+    Analyze the routes and recommend the absolute best one based on the user's priority.
+    Provide a professional, insightful 3-sentence recommendation. Address:
     1. Which route is best for their group budget/priority.
-    2. A specific cost-saving or comfort-enhancing tip (e.g., "Since you have 4 people, splitting a taxi to the station might be cheaper").
+    2. A specific cost-saving or comfort-enhancing tip.
     3. An urgency or booking insight based on the date.
     Make it sound like a premium startup AI assistant.
+
+    Return the response EXCLUSIVELY in valid JSON format like this:
+    {
+      "bestOptionId": "<id of the recommended route>",
+      "explanation": "<your 3-sentence recommendation>"
+    }
     `;
 
     const result = await model.generateContent(prompt);
-    return result.response.text();
+    let text = result.response.text();
+    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(text);
   } catch (error) {
     console.error("Gemini API Error:", error.message);
-    return "Our AI is currently analyzing data, but based on your budget and group size, the top recommended route is your most efficient choice.";
+    const bestRouteId = routes.length > 0 ? routes[0].id : null;
+    return {
+      bestOptionId: bestRouteId,
+      explanation: "Our AI is currently analyzing data, but based on your budget and group size, the top recommended route is your most efficient choice."
+    };
   }
 }
 

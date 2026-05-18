@@ -1,6 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, MapPin, IndianRupee, Users, Calendar, Navigation, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Simple debounce function
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
+}
 
 export default function TravelForm({ onSubmit, loading }) {
   const [formData, setFormData] = useState({
@@ -15,6 +29,49 @@ export default function TravelForm({ onSubmit, loading }) {
     comfortPriority: 'false',
     travelType: 'Any'
   });
+
+  const [sourceSuggestions, setSourceSuggestions] = useState([]);
+  const [destSuggestions, setDestSuggestions] = useState([]);
+  const [showSourceDropdown, setShowSourceDropdown] = useState(false);
+  const [showDestDropdown, setShowDestDropdown] = useState(false);
+
+  const debouncedSource = useDebounce(formData.source, 500);
+  const debouncedDest = useDebounce(formData.destination, 500);
+
+  const sourceRef = useRef(null);
+  const destRef = useRef(null);
+
+  // Click outside to close dropdowns
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (sourceRef.current && !sourceRef.current.contains(event.target)) setShowSourceDropdown(false);
+      if (destRef.current && !destRef.current.contains(event.target)) setShowDestDropdown(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const fetchLocations = async (query, setSuggestions) => {
+    if (query.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
+      const data = await res.json();
+      setSuggestions(data);
+    } catch (err) {
+      console.error("Failed to fetch location", err);
+    }
+  };
+
+  useEffect(() => {
+    if (showSourceDropdown) fetchLocations(debouncedSource, setSourceSuggestions);
+  }, [debouncedSource]);
+
+  useEffect(() => {
+    if (showDestDropdown) fetchLocations(debouncedDest, setDestSuggestions);
+  }, [debouncedDest]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -33,26 +90,82 @@ export default function TravelForm({ onSubmit, loading }) {
       className="glass p-6 md:p-10 rounded-[2.5rem] w-full max-w-5xl mx-auto -mt-16 relative z-10"
     >
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
-        <div className="space-y-1">
+        <div className="space-y-1 relative" ref={sourceRef}>
           <label className={labelClasses}>
             <MapPin size={14} className="text-blue-500" /> Source
           </label>
           <input 
             type="text" required placeholder="E.g. Mumbai" 
             className={inputClasses}
-            value={formData.source} onChange={(e) => setFormData({...formData, source: e.target.value})}
+            value={formData.source} 
+            onChange={(e) => {
+              setFormData({...formData, source: e.target.value});
+              setShowSourceDropdown(true);
+            }}
+            onFocus={() => setShowSourceDropdown(true)}
           />
+          <AnimatePresence>
+            {showSourceDropdown && sourceSuggestions.length > 0 && (
+              <motion.ul 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute z-50 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl mt-1 shadow-xl max-h-48 overflow-y-auto"
+              >
+                {sourceSuggestions.map((place, idx) => (
+                  <li 
+                    key={idx}
+                    className="p-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer border-b border-slate-100 dark:border-slate-700 last:border-0"
+                    onClick={() => {
+                      setFormData({...formData, source: place.display_name.split(',')[0]});
+                      setShowSourceDropdown(false);
+                    }}
+                  >
+                    {place.display_name}
+                  </li>
+                ))}
+              </motion.ul>
+            )}
+          </AnimatePresence>
         </div>
         
-        <div className="space-y-1">
+        <div className="space-y-1 relative" ref={destRef}>
           <label className={labelClasses}>
             <MapPin size={14} className="text-purple-500" /> Destination
           </label>
           <input 
             type="text" required placeholder="E.g. Delhi" 
             className={inputClasses}
-            value={formData.destination} onChange={(e) => setFormData({...formData, destination: e.target.value})}
+            value={formData.destination} 
+            onChange={(e) => {
+              setFormData({...formData, destination: e.target.value});
+              setShowDestDropdown(true);
+            }}
+            onFocus={() => setShowDestDropdown(true)}
           />
+          <AnimatePresence>
+            {showDestDropdown && destSuggestions.length > 0 && (
+              <motion.ul 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute z-50 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl mt-1 shadow-xl max-h-48 overflow-y-auto"
+              >
+                {destSuggestions.map((place, idx) => (
+                  <li 
+                    key={idx}
+                    className="p-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer border-b border-slate-100 dark:border-slate-700 last:border-0"
+                    onClick={() => {
+                      setFormData({...formData, destination: place.display_name.split(',')[0]});
+                      setShowDestDropdown(false);
+                    }}
+                  >
+                    {place.display_name}
+                  </li>
+                ))}
+              </motion.ul>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="space-y-1">
